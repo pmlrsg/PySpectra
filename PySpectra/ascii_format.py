@@ -23,7 +23,7 @@ class ASCIIFormat(spectra_reader.SpectraReader):
                           reflectance_col=1,
                           wavelength_units="nm",
                           reflectance_scale=1,
-                          **args):
+                          **kwargs):
         """
         Extract spectra from ASCII file
 
@@ -39,7 +39,7 @@ class ASCIIFormat(spectra_reader.SpectraReader):
 
         """
 
-        data = numpy.genfromtxt(filename,**args)
+        data = numpy.genfromtxt(filename,**kwargs)
 
         wavelengths = data[:,wavelengths_col]
         reflectance = data[:,reflectance_col]

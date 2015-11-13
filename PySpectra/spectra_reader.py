@@ -8,6 +8,9 @@
 # Author: Dan Clewley
 # Created: 27/08/2015
 
+import numpy
+from matplotlib import pylab as plt
+
 class Spectra(object):
     """
     Class to store spectra
