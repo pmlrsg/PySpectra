@@ -15,6 +15,7 @@ import os
 from . import sig
 from . import ascii_format
 from . import usgs
+from . import dart
 
 
 def extract_spectra_from_file(inputfile, input_format=''):
@@ -45,6 +46,9 @@ def extract_spectra_from_file(inputfile, input_format=''):
     elif input_format.lower() == 'usgs':
         usgs_obj = usgs.USGSFormat()
         extracted_spectra = usgs_obj.get_spectra(inputfile)
+    elif input_format.lower() == 'dart':
+        dart_obj = dart.DARTFormat()
+        extracted_spectra = dart_obj.get_spectra(inputfile)
     else:
         raise TypeError('Input format was not provided or recognised from extension')
 
