@@ -41,6 +41,11 @@ class Spectra(object):
         self.value_scaling = 1
 
     def plot(self, **kwargs):
+        """Produces a basic plot of the spectrum
+
+        Requires matplotlib to be installed
+
+        """
         from matplotlib.pyplot import plot, xlabel, ylabel
         plot(self.wavelengths, self.values, label=self.file_name, **kwargs)
         xlabel("Wavelength (%s)" % self.wavelength_units)
@@ -57,7 +62,10 @@ class Spectra(object):
 
         * srf - Spectral Response Function to convolve to. This should be a Spectra
         object with the value_units attribute set to "response"
+
         """
+        if srf.value_units != "response":
+            raise ValueError('SRF must be a Spectra instance with value_units set to "response"')
 
         # Interpolate to required wavelengths
         f = interp1d(self.wavelengths, self.values)
