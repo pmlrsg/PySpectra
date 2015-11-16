@@ -68,8 +68,8 @@ class USGSFormat(spectra_reader.SpectraReader):
         f.close()
         npdata[npdata == -1.23e+34] = np.nan
 
-        wavelengths = npdata[:,0]
-        reflectance = npdata[:,1]
+        wavelengths = npdata[:, 0]
+        reflectance = npdata[:, 1]
 
         self.spectra.file_name = filename_or_url
         self.spectra.wavelengths = wavelengths

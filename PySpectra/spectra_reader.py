@@ -39,6 +39,7 @@ class Spectra(object):
         self.value_units = "reflectance"
         self.value_scaling = 1
 
+
 class SpectraReader(object):
 
     """
@@ -50,4 +51,3 @@ class SpectraReader(object):
 
     def get_spectra(self, filename):
         pass
-

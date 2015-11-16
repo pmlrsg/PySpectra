@@ -15,6 +15,7 @@ import collections
 
 from . import spectra_reader
 
+
 class SigFormat(spectra_reader.SpectraReader):
     """
     Class for the HRDPA .sig format
@@ -43,12 +44,12 @@ class SigFormat(spectra_reader.SpectraReader):
         start_end_pos_str = line.split(",")
         start_pos_str = start_end_pos_str[0].strip()
         if coordinate == "longitude":
-            position = int(start_pos_str[0:3]) + float(start_pos_str[3:-1])/60.0
+            position = int(start_pos_str[0:3]) + float(start_pos_str[3:-1]) / 60.0
             if start_pos_str[-1].upper() == "W":
                 position = position * -1
 
         elif coordinate == "latitude":
-            position = int(start_pos_str[0:2]) + float(start_pos_str[2:-1])/60.0
+            position = int(start_pos_str[0:2]) + float(start_pos_str[2:-1]) / 60.0
             if start_pos_str[-1].upper() == "S":
                 position = position * -1
 
@@ -69,7 +70,7 @@ class SigFormat(spectra_reader.SpectraReader):
         """
 
         sig_dict = collections.OrderedDict()
-        data_array=[]
+        data_array = []
 
         with open(filename, "r") as f:
             for line in f:
@@ -104,23 +105,25 @@ class SigFormat(spectra_reader.SpectraReader):
         sig_dict = self.read_sig_to_dict(filename)
 
         # remove overlap regions (remove VNIR for now)
-        for x in range(len(sig_dict["data"].T[0])-1):
-            if sig_dict["data"].T[0][x+1]<sig_dict["data"].T[0][x]:
-                point = x+1
+        for x in range(len(sig_dict["data"].T[0]) - 1):
+            if sig_dict["data"].T[0][x + 1] < sig_dict["data"].T[0][x]:
+                point = x + 1
 
-        points = numpy.asarray(numpy.where(sig_dict["data"].T[0]>sig_dict["data"].T[0][point]))
-        points = points[points<point]
+        points = numpy.asarray(numpy.where(sig_dict["data"].T[0] > sig_dict["data"].T[0][point]))
+        points = points[points < point]
 
-        wavelengths_reflectance=numpy.concatenate((sig_dict["data"].T[:,:points[0]-1], sig_dict["data"].T[:,points[-1:]+1:]), axis=1)
+        wavelengths_reflectance = numpy.concatenate((sig_dict["data"].T[:, :points[0] - 1],
+                                                    sig_dict["data"].T[:, points[-1:] + 1:]),
+                                                    axis=1)
 
-        wavelengths_reflectance = numpy.delete(wavelengths_reflectance, ([1,2]), axis=0)
+        wavelengths_reflectance = numpy.delete(wavelengths_reflectance, ([1, 2]), axis=0)
 
         wavelengths = wavelengths_reflectance[0]
         # Scale reflectance values between 0 - 1.
-        reflectance = wavelengths_reflectance[1]/100.0
+        reflectance = wavelengths_reflectance[1] / 100.0
 
-        lon = self.parse_sig_pos(sig_dict["longitude"],"longitude")
-        lat = self.parse_sig_pos(sig_dict["latitude"],"latitude")
+        lon = self.parse_sig_pos(sig_dict["longitude"], "longitude")
+        lat = self.parse_sig_pos(sig_dict["latitude"], "latitude")
 
         self.spectra.file_name = filename
         self.spectra.wavelengths = wavelengths

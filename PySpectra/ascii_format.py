@@ -13,17 +13,18 @@ import numpy
 
 from . import spectra_reader
 
+
 class ASCIIFormat(spectra_reader.SpectraReader):
     """
     Class to read spectra from ASCII format data
     """
 
     def get_spectra(self, filename,
-                          wavelengths_col=0,
-                          reflectance_col=1,
-                          wavelength_units="nm",
-                          reflectance_scale=1,
-                          **kwargs):
+                    wavelengths_col=0,
+                    reflectance_col=1,
+                    wavelength_units="nm",
+                    reflectance_scale=1,
+                    **kwargs):
         """
         Extract spectra from ASCII file
 
@@ -39,10 +40,10 @@ class ASCIIFormat(spectra_reader.SpectraReader):
 
         """
 
-        data = numpy.genfromtxt(filename,**kwargs)
+        data = numpy.genfromtxt(filename, **kwargs)
 
-        wavelengths = data[:,wavelengths_col]
-        reflectance = data[:,reflectance_col]
+        wavelengths = data[:, wavelengths_col]
+        reflectance = data[:, reflectance_col]
 
         # Scale reflectance values between 0 - 1.
         reflectance = reflectance / reflectance_scale
@@ -59,4 +60,3 @@ class ASCIIFormat(spectra_reader.SpectraReader):
         self.spectra.value_scaling = 1
 
         return self.spectra
-
