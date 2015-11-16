@@ -14,6 +14,7 @@ Module for importing spectra from ground truth measurements
 import os
 from . import sig
 from . import ascii_format
+from . import usgs
 
 def extract_spectra_from_file(inputfile, input_format=''):
     """
@@ -40,6 +41,9 @@ def extract_spectra_from_file(inputfile, input_format=''):
     elif input_format.lower() == 'txt' or (os.path.splitext(inputfile)[-1].lower() == '.txt'):
         ascii_obj = ascii_format.ASCIIFormat()
         extracted_spectra = ascii_obj.get_spectra(inputfile, delimiter=';',skiprows=1)
+    elif input_format.lower() == 'usgs':
+        usgs_obj = usgs.USGSFormat()
+        extracted_spectra = usgs_obj.get_spectra(inputfile)
     else:
         raise TypeError('Input format was not provided or recognised from extension')
 
