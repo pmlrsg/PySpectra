@@ -28,16 +28,17 @@ class Spectra(object):
     * value_type - type of values (typically reflectance)
 
     """
-    def __init__(self):
+    def __init__(self, wavelengths=None, values=None,
+                 wavelength_units="", value_units=""):
         self.file_name = None
-        self.wavelengths = None
-        self.values = None
+        self.wavelengths = wavelengths
+        self.values = values
         self.pixel = None
         self.line = None
         self.latitude = None
         self.longitude = None
-        self.wavelength_units = ""
-        self.value_units = ""
+        self.wavelength_units = wavelength_units
+        self.value_units = value_units
         self.value_scaling = 1
 
     def plot(self, label=None, **kwargs):
@@ -49,11 +50,25 @@ class Spectra(object):
         from matplotlib.pyplot import plot, xlabel, ylabel
 
         if label is None:
-            label = self.filename
+            label = self.file_name
 
         plot(self.wavelengths, self.values, label=label, **kwargs)
         xlabel("Wavelength (%s)" % self.wavelength_units)
         ylabel(self.value_units)
+
+    def _convolve(self, srf):
+        """Actually does the convolution as specified in the 'convolve' function."""
+        if srf.value_units != "response":
+            raise ValueError('SRF must be a Spectra instance with value_units set to "response"')
+
+        # Interpolate to required wavelengths
+        f = interp1d(self.wavelengths, self.values)
+        at_srf_wavelengths = f(srf.wavelengths)
+
+        result = trapz(srf.values * at_srf_wavelengths,
+                       srf.wavelengths) / trapz(srf.values, srf.wavelengths)
+
+        return result
 
     def convolve(self, srf):
         """Convolve the spectrum with a Spectral Response Function.
@@ -64,19 +79,32 @@ class Spectra(object):
 
         Requires:
 
-        * srf - Spectral Response Function to convolve to. This should be a Spectra
-        object with the value_units attribute set to "response"
+        * srf - Spectral Response Function to convolve to. This should be either
+        a single Spectra object with the value_units attribute set to "response",
+        or a list of such objects.
+
+        Pre-configured Spectra objects for the SRFs of various common sensors are
+        available in the `srf` module of this package.
+
+        Example:
+
+        # Convolve for one band
+        from PySpectra.srf import LANDSAT_OLI_B1
+        s.convolve(LANDSAT_OLI_B1)
+
+        # Convolve for multiple bands
+        from PySpectra.srf import LANDSAT_OLI_B1, LANDSAT_OLI_B2
+        s.convolve(LANDSAT_OLI_B1, LANDSAT_OLI_B2)
+
+        # Convolve for all Landsat OLI bands
+        from PySpectra.srf import LANDSAT_OLI
+        s.convolve(LANDSAT_OLI)
 
         """
-        if srf.value_units != "response":
-            raise ValueError('SRF must be a Spectra instance with value_units set to "response"')
-
-        # Interpolate to required wavelengths
-        f = interp1d(self.wavelengths, self.values)
-        at_srf_wavelengths = f(srf.wavelengths)
-
-        result = trapz(srf.values * at_srf_wavelengths,
-                       srf.wavelengths) / trapz(srf.values, srf.wavelengths)
+        try:
+            result = [self._convolve(s) for s in srf]
+        except:
+            result = self._convolve(srf)
 
         return result
 
