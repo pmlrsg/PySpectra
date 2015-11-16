@@ -8,6 +8,9 @@
 # Author: Dan Clewley
 # Created: 27/08/2015
 
+from scipy.interpolate import interp1d
+from scipy.integrate import trapz
+
 
 class Spectra(object):
     """
@@ -37,11 +40,33 @@ class Spectra(object):
         self.value_units = "reflectance"
         self.value_scaling = 1
 
-    def plot(self):
+    def plot(self, **kwargs):
         from matplotlib.pyplot import plot, xlabel, ylabel
-        plot(self.wavelengths, self.values, label=self.file_name)
+        plot(self.wavelengths, self.values, label=self.file_name, **kwargs)
         xlabel("Wavelength (%s)" % self.wavelength_units)
         ylabel(self.value_units)
+
+    def convolve(self, srf):
+        """Convolve the spectrum with a Spectral Response Function.
+
+        This is generally used to convert a full spectrum to the
+        values that would be recorded from a sensor with wide spectral
+        bands (defined by the SRF given).
+
+        Requires:
+
+        * srf - Spectral Response Function to convolve to. This should be a Spectra
+        object with the value_units attribute set to "response"
+        """
+
+        # Interpolate to required wavelengths
+        f = interp1d(self.wavelengths, self.values)
+        at_srf_wavelengths = f(srf.wavelengths)
+
+        result = trapz(srf.values * at_srf_wavelengths,
+                       srf.wavelengths) / trapz(srf.values, srf.wavelengths)
+
+        return result
 
 
 class SpectraReader(object):
