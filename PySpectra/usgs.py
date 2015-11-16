@@ -78,7 +78,7 @@ class USGSFormat(spectra_reader.SpectraReader):
         self.spectra.line = None
         self.spectra.latitude = None
         self.spectra.longitude = None
-        self.spectra.wavelength_units = "nm"
+        self.spectra.wavelength_units = "um"
         self.spectra.value_units = "reflectance"
         self.spectra.value_scaling = 1
 
