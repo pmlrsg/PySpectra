@@ -36,8 +36,8 @@ class Spectra(object):
         self.line = None
         self.latitude = None
         self.longitude = None
-        self.wavelength_units = "nm"
-        self.value_units = "reflectance"
+        self.wavelength_units = ""
+        self.value_units = ""
         self.value_scaling = 1
 
     def plot(self, **kwargs):
