@@ -40,14 +40,18 @@ class Spectra(object):
         self.value_units = ""
         self.value_scaling = 1
 
-    def plot(self, **kwargs):
+    def plot(self, label=None, **kwargs):
         """Produces a basic plot of the spectrum
 
         Requires matplotlib to be installed
 
         """
         from matplotlib.pyplot import plot, xlabel, ylabel
-        plot(self.wavelengths, self.values, label=self.file_name, **kwargs)
+
+        if label is None:
+            label = self.filename
+
+        plot(self.wavelengths, self.values, label=label, **kwargs)
         xlabel("Wavelength (%s)" % self.wavelength_units)
         ylabel(self.value_units)
 
