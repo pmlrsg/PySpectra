@@ -39,6 +39,12 @@ class Spectra(object):
         self.value_units = "reflectance"
         self.value_scaling = 1
 
+    def plot(self):
+        from matplotlib.pyplot import plot, xlabel, ylabel
+        plot(self.wavelengths, self.values, label=self.file_name)
+        xlabel("Wavelength (%s)" % self.wavelength_units)
+        ylabel(self.value_units)
+
 
 class SpectraReader(object):
 
