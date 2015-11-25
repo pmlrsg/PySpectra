@@ -41,7 +41,6 @@ class ASCIIFormat(spectra_reader.SpectraReader):
         """
 
         data = numpy.genfromtxt(filename, **kwargs)
-
         wavelengths = data[:, wavelengths_col]
         reflectance = data[:, reflectance_col]
 
