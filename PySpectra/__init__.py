@@ -16,6 +16,7 @@ from . import sig
 from . import ascii_format
 from . import usgs
 from . import dart
+from . import envi
 
 
 def extract_spectra_from_file(inputfile, input_format='', **kwargs):
@@ -49,6 +50,9 @@ def extract_spectra_from_file(inputfile, input_format='', **kwargs):
         ascii_obj = ascii_format.ASCIIFormat()
         extracted_spectra = ascii_obj.get_spectra(inputfile, delimiter=',',
                                                   skiprows=1, **kwargs)
+    elif input_format.lower() == 'envi' or (os.path.splitext(inputfile)[-1].lower() == '.sli'):
+        envi_obj = envi.ENVIFormat()
+        extracted_spectra = envi_obj.get_spectra(inputfile, **kwargs)
     elif input_format.lower() == 'usgs':
         usgs_obj = usgs.USGSFormat()
         extracted_spectra = usgs_obj.get_spectra(inputfile)
