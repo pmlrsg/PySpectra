@@ -98,7 +98,8 @@ class ENVIFormat(spectra_reader.SpectraReader):
 
     def get_spectra(self, filename, spectra_number=1):
         """
-        Extracts spectra from ENVI file
+        Extracts spectra from ENVI file. To get a list of all spectra within
+        a file use 'print_spectra_names'.
 
         Requires:
 
@@ -149,3 +150,17 @@ class ENVIFormat(spectra_reader.SpectraReader):
             self.spectra.value_scaling = 1
 
         return self.spectra
+
+    def print_spectra_names(self, filename):
+        """
+        Prints the names of spectra within a spectral library and the
+        coresponding number, which can be used in 'get_spectra'
+        """
+        in_header = self.read_hdr_file(filename)
+
+        spectra_names = in_header['spectra names']
+
+        for i, name in enumerate(spectra_names.split(',')):
+            print("{:0>3}: {}".format(i+1, name.strip()))
+
+
