@@ -44,12 +44,12 @@ def extract_spectra_from_file(inputfile, input_format='', **kwargs):
     elif input_format.lower() == 'txt' or (os.path.splitext(inputfile)[-1].lower() == '.txt'):
         ascii_obj = ascii_format.ASCIIFormat()
         extracted_spectra = ascii_obj.get_spectra(inputfile, delimiter=';',
-                                                  skiprows=1, **kwargs)
+                                                  skip_header=1, **kwargs)
     # CSV format, with a single header row.
     elif input_format.lower() == 'csv' or (os.path.splitext(inputfile)[-1].lower() == '.csv'):
         ascii_obj = ascii_format.ASCIIFormat()
         extracted_spectra = ascii_obj.get_spectra(inputfile, delimiter=',',
-                                                  skiprows=1, **kwargs)
+                                                  skip_header=1, **kwargs)
     elif input_format.lower() == 'envi' or (os.path.splitext(inputfile)[-1].lower() == '.sli'):
         envi_obj = envi.ENVIFormat()
         extracted_spectra = envi_obj.get_spectra(inputfile, **kwargs)
