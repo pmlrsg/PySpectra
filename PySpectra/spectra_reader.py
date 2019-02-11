@@ -24,8 +24,12 @@ class Spectra(object):
     * line - Line (if spectra extracted from image)
     * latitude - Latitude of spectra (if available)
     * longitude - Longitude of spectra (if available)
+    * time - Acqusition time of spectra (UTC) as python time.struct_time
     * wavelength_units - units of wavelengths (e.g., 'nm' or 'um')
     * value_type - type of values (typically reflectance)
+    * intergration_time - intergration time for instrument in seconds
+    * n_scans_average - number of scans averaged over (when instrument averages over multiple measurements)
+    * additional_metadata - dictionary containing additional metadata
 
     """
     def __init__(self, wavelengths=None, values=None,
@@ -37,9 +41,15 @@ class Spectra(object):
         self.line = None
         self.latitude = None
         self.longitude = None
+        self.time = None
         self.wavelength_units = wavelength_units
         self.value_units = value_units
         self.value_scaling = 1
+        self.intergration_time = None
+        self.n_scans_average = 1
+        self.additional_metadata = {}
+
+    def __add__(self
 
     def plot(self, label=None, **kwargs):
         """Produces a basic plot of the spectrum
@@ -69,6 +79,21 @@ class Spectra(object):
                        srf.wavelengths) / trapz(srf.values, srf.wavelengths)
 
         return result
+
+    def resample_wavelengths(self, new_wavelengths):
+        """
+        Resample wavelengths in spectral object to match 'new_wavelengths'.
+
+        Replaces existing wavelengths with provided wavelengths and values with
+        those interpolated using new wavelengths.
+        """
+
+        # Interpolate to required wavelengths
+        f = interp1d(self.wavelengths, self.values)
+        new_values = f(new_wavelengths)
+
+        self.wavelengths = new_wavelengths
+        self.values = new_values
 
     def convolve(self, srf):
         """Convolve the spectrum with a Spectral Response Function.

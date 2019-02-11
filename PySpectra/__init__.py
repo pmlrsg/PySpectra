@@ -17,7 +17,7 @@ from . import ascii_format
 from . import usgs
 from . import dart
 from . import envi
-
+from . import ocean_optics
 
 def extract_spectra_from_file(inputfile, input_format='', **kwargs):
     """
@@ -59,6 +59,22 @@ def extract_spectra_from_file(inputfile, input_format='', **kwargs):
     elif input_format.lower() == 'dart':
         dart_obj = dart.DARTFormat()
         extracted_spectra = dart_obj.get_spectra(inputfile)
+    # There are different formats for ocean optics STS depending on
+    # if SDK is used (e.g., via Raspberry Pi) or OceanView software.
+    # If non are specified try both
+    elif input_format.lower() == 'oceanoptics':
+        try:
+            ocean_optics_obj = dart.OceanOpticsSTSFormatSDK()
+            extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
+        except Exception:
+            ocean_optics_obj = dart.OceanOpticsSTSFormatOceanView()
+            extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
+    elif input_format.lower() == 'oceanoptics-sdk':
+        ocean_optics_obj = dart.OceanOpticsSTSFormatSDK()
+        extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
+    elif input_format.lower() == 'oceanoptics-oceanviw':
+        ocean_optics_obj = dart.OceanOpticsSTSFormatOceanView()
+        extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
     else:
         raise TypeError('Input format was not provided or recognised from extension')
 
