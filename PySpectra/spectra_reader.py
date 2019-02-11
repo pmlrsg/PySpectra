@@ -49,8 +49,6 @@ class Spectra(object):
         self.n_scans_average = 1
         self.additional_metadata = {}
 
-    def __add__(self
-
     def plot(self, label=None, **kwargs):
         """Produces a basic plot of the spectrum
 

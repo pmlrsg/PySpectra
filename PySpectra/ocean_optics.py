@@ -28,16 +28,16 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
             if line.startswith("Integration time: "):
                 # Read in integration time. Stored in file as ms need to convert to
                 # seconds
-                self.integration_time = float(line.split(":")[1]) / 1E6
+                self.spectra.integration_time = float(line.split(":")[1]) / 1E6
             elif line.startswith("Scans to average: "):
-                self.n_scans_average = int(line.split("Scans to average: ")[1])
+                self.spectra.n_scans_average = int(line.split("Scans to average: ")[1])
                         # Once start getting to data have read all metadata so return.
             elif line.startswith("Wavelengths"):
                 spectra_file.close()
                 return
-            elif line.count(":") == 1
+            elif line.count(":") == 1:
                 elements = line.split(":")
-                self.additional_metadata[elements[0]] = elements[1]
+                self.spectra.additional_metadata[elements[0]] = elements[1]
 
         spectra_file.close()
 
@@ -56,12 +56,12 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
 
         """
         # Get metadata
-        self.get_metadata(filename)
+        self.read_metadata(filename)
 
         # Get creation time from file creation date. When using SDK this is the
         # only way to get this information.
-        if self.time is None
-            self.time = time.gmtime(os.stat(filename).st_ctime)
+        if self.spectra.time is None:
+            self.spectra.time = time.gmtime(os.stat(filename).st_ctime)
 
         # Read in data
         data = numpy.genfromtxt(filename, skip_header=6)
@@ -92,22 +92,22 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
 
         for line in spectra_file:
 
-            if line.startswith("Date")
+            if line.startswith("Date"):
                 elements = line.split(":")
-                time.strptime(elements[1], "%a %b %d %H:%M:%S %Z %Y") 
+                sepf.spectra.time = time.strptime(elements[1], "%a %b %d %H:%M:%S %Z %Y") 
             elif line.startswith("Integration Time (sec): "):
                 # Read in integration time.
-                self.integration_time = float(line.split(":")[1])
+                self.spectra.integration_time = float(line.split(":")[1])
             elif line.startswith("Scans to average: "):
-                self.n_scans_average = int(line.split("Scans to average: ")[1])
+                self.spectra.n_scans_average = int(line.split("Scans to average: ")[1])
             elif line.startswith("Boxcar smoothing: "):
-                self.additional_metadata["Boxcar smoothing"] = int(line.split("Boxcar smoothing: ")[1])
+                self.spectra.additional_metadata["Boxcar smoothing"] = int(line.split("Boxcar smoothing: ")[1])
             # Once start getting to data have read all metadata so return.
-            elif "Begin Spectral Data" in line
+            elif "Begin Spectral Data" in line:
                 spectra_file.close()
                 return
             # Just add rest of metadata to dictionary
-            elif line.count(":") == 1
+            elif line.count(":") == 1:
                 elements = line.split(":")
                 self.additional_metadata[elements[0]] = elements[1]
 
@@ -129,12 +129,12 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
 
         """
         # Get metadata
-        self.get_metadata(filename)
+        self.read_metadata(filename)
 
         # Get creation time from file creation date if can't get from
         # metadata
-        if self.time is None
-            self.time = time.gmtime(os.stat(filename).st_ctime)
+        if self.spectra.time is None:
+            self.spectra.time = time.gmtime(os.stat(filename).st_ctime)
 
         # Read in data
         data = numpy.genfromtxt(filename, skip_header=14)

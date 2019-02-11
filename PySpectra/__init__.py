@@ -40,11 +40,6 @@ def extract_spectra_from_file(inputfile, input_format='', **kwargs):
     if input_format.lower() == 'sig' or (os.path.splitext(inputfile)[-1].lower() == '.sig'):
         sig_obj = sig.SigFormat()
         extracted_spectra = sig_obj.get_spectra(inputfile)
-    # Text format, currently semi-colon separated with a single header row.
-    elif input_format.lower() == 'txt' or (os.path.splitext(inputfile)[-1].lower() == '.txt'):
-        ascii_obj = ascii_format.ASCIIFormat()
-        extracted_spectra = ascii_obj.get_spectra(inputfile, delimiter=';',
-                                                  skip_header=1, **kwargs)
     # CSV format, with a single header row.
     elif input_format.lower() == 'csv' or (os.path.splitext(inputfile)[-1].lower() == '.csv'):
         ascii_obj = ascii_format.ASCIIFormat()
@@ -64,17 +59,22 @@ def extract_spectra_from_file(inputfile, input_format='', **kwargs):
     # If non are specified try both
     elif input_format.lower() == 'oceanoptics':
         try:
-            ocean_optics_obj = dart.OceanOpticsSTSFormatSDK()
+            ocean_optics_obj = ocean_optics.OceanOpticsSTSFormatSDK()
             extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
         except Exception:
-            ocean_optics_obj = dart.OceanOpticsSTSFormatOceanView()
+            ocean_optics_obj = ocean_optics.OceanOpticsSTSFormatOceanView()
             extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
     elif input_format.lower() == 'oceanoptics-sdk':
-        ocean_optics_obj = dart.OceanOpticsSTSFormatSDK()
+        ocean_optics_obj = ocean_optics.OceanOpticsSTSFormatSDK()
         extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
     elif input_format.lower() == 'oceanoptics-oceanviw':
-        ocean_optics_obj = dart.OceanOpticsSTSFormatOceanView()
+        ocean_optics_obj = ocean_optics.OceanOpticsSTSFormatOceanView()
         extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
+    # Text format, currently semi-colon separated with a single header row.
+    elif input_format.lower() == 'txt' or (os.path.splitext(inputfile)[-1].lower() == '.txt'):
+        ascii_obj = ascii_format.ASCIIFormat()
+        extracted_spectra = ascii_obj.get_spectra(inputfile, delimiter=';',
+                                                  skip_header=1, **kwargs)
     else:
         raise TypeError('Input format was not provided or recognised from extension')
 
