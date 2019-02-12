@@ -24,6 +24,7 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
         spectra_file = open(filename, "r")
 
         for line in spectra_file:
+            line = line.strip()
 
             if line.startswith("Integration time: "):
                 # Read in integration time. Stored in file as ms need to convert to
@@ -91,10 +92,17 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
         spectra_file = open(filename, "r")
 
         for line in spectra_file:
+            line = line.strip()
 
             if line.startswith("Date"):
-                elements = line.split(":")
-                sepf.spectra.time = time.strptime(elements[1], "%a %b %d %H:%M:%S %Z %Y") 
+                # Some times has time zone but not always.
+                try:
+                    self.spectra.time = time.strptime(line.replace("Date: ",""),
+                                                      "%a %b %d %H:%M:%S %Z %Y")
+                except ValueError:
+                    self.spectra.time = time.strptime(line.replace("Date: ",""),
+                                                      "%a %b %d %H:%M:%S %Y")
+
             elif line.startswith("Integration Time (sec): "):
                 # Read in integration time.
                 self.spectra.integration_time = float(line.split(":")[1])
@@ -109,8 +117,7 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
             # Just add rest of metadata to dictionary
             elif line.count(":") == 1:
                 elements = line.split(":")
-                self.additional_metadata[elements[0]] = elements[1]
-
+                self.spectra.additional_metadata[elements[0]] = elements[1]
 
         spectra_file.close()
 
@@ -137,7 +144,7 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
             self.spectra.time = time.gmtime(os.stat(filename).st_ctime)
 
         # Read in data
-        data = numpy.genfromtxt(filename, skip_header=14)
+        data = numpy.genfromtxt(filename, skip_header=15)
         wavelengths = data[:, 0]
         dn = data[:, 1]
 

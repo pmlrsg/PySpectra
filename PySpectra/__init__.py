@@ -67,7 +67,7 @@ def extract_spectra_from_file(inputfile, input_format='', **kwargs):
     elif input_format.lower() == 'oceanoptics-sdk':
         ocean_optics_obj = ocean_optics.OceanOpticsSTSFormatSDK()
         extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
-    elif input_format.lower() == 'oceanoptics-oceanviw':
+    elif input_format.lower() == 'oceanoptics-oceanview':
         ocean_optics_obj = ocean_optics.OceanOpticsSTSFormatOceanView()
         extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
     # Text format, currently semi-colon separated with a single header row.
