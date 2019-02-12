@@ -8,6 +8,10 @@
 # Author: Dan Clewley
 # Created: 27/08/2015
 
+import time
+
+import numpy
+
 from scipy.interpolate import interp1d
 from scipy.integrate import trapz
 
@@ -64,6 +68,21 @@ class Spectra(object):
         xlabel("Wavelength (%s)" % self.wavelength_units)
         ylabel(self.value_units)
 
+    def get_time_difference(self, target_spectra):
+        """
+        Get time difference between spectra and target spectra, returns
+        results in seconds of base_spectra - target_spectra
+    
+        Requires:
+        
+        * target_spectra: a spectral object
+
+        """
+        base_spectra_time_s = time.mktime(self.time)
+        target_spectra_time_s = time.mktime(target_spectra.time)
+
+        return base_spectra_time_s - target_spectra_time_s
+
     def _convolve(self, srf):
         """Actually does the convolution as specified in the 'convolve' function."""
         if srf.value_units != "response":
@@ -84,11 +103,15 @@ class Spectra(object):
 
         Replaces existing wavelengths with provided wavelengths and values with
         those interpolated using new wavelengths.
+
+        Requires:
+
+        * new_wavelengths - numpy array containing new wavelengths
+
         """
 
         # Interpolate to required wavelengths
-        f = interp1d(self.wavelengths, self.values)
-        new_values = f(new_wavelengths)
+        new_values = numpy.interp(new_wavelengths, self.wavelengths, self.values)
 
         self.wavelengths = new_wavelengths
         self.values = new_values
