@@ -71,7 +71,7 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
         wavelengths = data[:, 0]
         dn = data[:, 1]
         # Set saturation values to NaN
-        dn[dn == OCEAN_OPTICS_SATURATION_VALUE] = numpy.nan
+        dn[dn >= OCEAN_OPTICS_SATURATION_VALUE] = numpy.nan
 
         self.spectra.file_name = filename
         self.spectra.wavelengths = wavelengths
@@ -153,7 +153,7 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
         dn = data[:, 1]
 
         # Set saturation values to NaN
-        dn[dn == OCEAN_OPTICS_SATURATION_VALUE] = numpy.nan
+        dn[dn >= OCEAN_OPTICS_SATURATION_VALUE] = numpy.nan
 
         self.spectra.file_name = filename
         self.spectra.wavelengths = wavelengths
