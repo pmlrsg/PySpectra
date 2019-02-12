@@ -14,6 +14,8 @@ import numpy
 
 from . import spectra_reader
 
+OCEAN_OPTICS_SATURATION_VALUE = 16383
+
 class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
     """
     Class to read spectra from ASCII format data saved using SDK
@@ -68,6 +70,8 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
         data = numpy.genfromtxt(filename, skip_header=6)
         wavelengths = data[:, 0]
         dn = data[:, 1]
+        # Set saturation values to NaN
+        dn[dn == OCEAN_OPTICS_SATURATION_VALUE] = numpy.nan
 
         self.spectra.file_name = filename
         self.spectra.wavelengths = wavelengths
@@ -147,6 +151,9 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
         data = numpy.genfromtxt(filename, skip_header=15)
         wavelengths = data[:, 0]
         dn = data[:, 1]
+
+        # Set saturation values to NaN
+        dn[dn == OCEAN_OPTICS_SATURATION_VALUE] = numpy.nan
 
         self.spectra.file_name = filename
         self.spectra.wavelengths = wavelengths
