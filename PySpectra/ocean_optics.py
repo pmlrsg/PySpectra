@@ -63,8 +63,10 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
 
         # Get creation time from file creation date. When using SDK this is the
         # only way to get this information.
+        # Use whichever is first ctime or mtime.
         if self.spectra.time is None:
-            self.spectra.time = time.gmtime(os.stat(filename).st_ctime)
+            self.spectra.time = time.gmtime(int(numpy.min([os.stat(filename).st_ctime, 
+                                                      os.stat(filename).st_mtime])))
 
         # Read in data
         data = numpy.genfromtxt(filename, skip_header=6)
@@ -144,8 +146,10 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
 
         # Get creation time from file creation date if can't get from
         # metadata
+        # Use whichever is first ctime or mtime.
         if self.spectra.time is None:
-            self.spectra.time = time.gmtime(os.stat(filename).st_ctime)
+            self.spectra.time = time.gmtime(int(numpy.min([os.stat(filename).st_ctime, 
+                                                      os.stat(filename).st_mtime])))
 
         # Read in data
         data = numpy.genfromtxt(filename, skip_header=15)
