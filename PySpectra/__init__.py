@@ -41,10 +41,6 @@ def extract_spectra_from_file(inputfile, input_format='', **kwargs):
         sig_obj = sig.SigFormat()
         extracted_spectra = sig_obj.get_spectra(inputfile)
     # CSV format, with a single header row.
-    elif input_format.lower() == 'csv' or (os.path.splitext(inputfile)[-1].lower() == '.csv'):
-        ascii_obj = ascii_format.ASCIIFormat()
-        extracted_spectra = ascii_obj.get_spectra(inputfile, delimiter=',',
-                                                  skip_header=1, **kwargs)
     elif input_format.lower() == 'envi' or (os.path.splitext(inputfile)[-1].lower() == '.sli'):
         envi_obj = envi.ENVIFormat()
         extracted_spectra = envi_obj.get_spectra(inputfile, **kwargs)
@@ -70,10 +66,14 @@ def extract_spectra_from_file(inputfile, input_format='', **kwargs):
     elif input_format.lower() == 'oceanoptics-oceanview':
         ocean_optics_obj = ocean_optics.OceanOpticsSTSFormatOceanView()
         extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
-    # Text format, currently semi-colon separated with a single header row.
+    # Text format, need to specify delimiter and number of header lines manually.
     elif input_format.lower() == 'txt' or (os.path.splitext(inputfile)[-1].lower() == '.txt'):
         ascii_obj = ascii_format.ASCIIFormat()
-        extracted_spectra = ascii_obj.get_spectra(inputfile, delimiter=';',
+        extracted_spectra = ascii_obj.get_spectra(inputfile, **kwargs)
+    # CSV, assume delimiter is ',' and there is a single header line.
+    elif input_format.lower() == 'csv' or (os.path.splitext(inputfile)[-1].lower() == '.csv'):
+        ascii_obj = ascii_format.ASCIIFormat()
+        extracted_spectra = ascii_obj.get_spectra(inputfile, delimiter=',',
                                                   skip_header=1, **kwargs)
     else:
         raise TypeError('Input format was not provided or recognised from extension')
