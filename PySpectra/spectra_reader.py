@@ -8,6 +8,10 @@
 # Author: Dan Clewley
 # Created: 27/08/2015
 
+import time
+
+import numpy
+
 from scipy.interpolate import interp1d
 from scipy.integrate import trapz
 
@@ -24,8 +28,12 @@ class Spectra(object):
     * line - Line (if spectra extracted from image)
     * latitude - Latitude of spectra (if available)
     * longitude - Longitude of spectra (if available)
+    * time - Acqusition time of spectra (UTC) as python time.struct_time
     * wavelength_units - units of wavelengths (e.g., 'nm' or 'um')
     * value_type - type of values (typically reflectance)
+    * intergration_time - intergration time for instrument in seconds
+    * n_scans_average - number of scans averaged over (when instrument averages over multiple measurements)
+    * additional_metadata - dictionary containing additional metadata
 
     """
     def __init__(self, wavelengths=None, values=None,
@@ -37,9 +45,13 @@ class Spectra(object):
         self.line = None
         self.latitude = None
         self.longitude = None
+        self.time = None
         self.wavelength_units = wavelength_units
         self.value_units = value_units
         self.value_scaling = 1
+        self.intergration_time = None
+        self.n_scans_average = 1
+        self.additional_metadata = {}
 
     def plot(self, label=None, **kwargs):
         """Produces a basic plot of the spectrum
@@ -56,6 +68,21 @@ class Spectra(object):
         xlabel("Wavelength (%s)" % self.wavelength_units)
         ylabel(self.value_units)
 
+    def get_time_difference(self, target_spectra):
+        """
+        Get time difference between spectra and target spectra, returns
+        results in seconds of base_spectra - target_spectra
+    
+        Requires:
+        
+        * target_spectra: a spectral object
+
+        """
+        base_spectra_time_s = time.mktime(self.time)
+        target_spectra_time_s = time.mktime(target_spectra.time)
+
+        return base_spectra_time_s - target_spectra_time_s
+
     def _convolve(self, srf):
         """Actually does the convolution as specified in the 'convolve' function."""
         if srf.value_units != "response":
@@ -69,6 +96,25 @@ class Spectra(object):
                        srf.wavelengths) / trapz(srf.values, srf.wavelengths)
 
         return result
+
+    def resample_wavelengths(self, new_wavelengths):
+        """
+        Resample wavelengths in spectral object to match 'new_wavelengths'.
+
+        Replaces existing wavelengths with provided wavelengths and values with
+        those interpolated using new wavelengths.
+
+        Requires:
+
+        * new_wavelengths - numpy array containing new wavelengths
+
+        """
+
+        # Interpolate to required wavelengths
+        new_values = numpy.interp(new_wavelengths, self.wavelengths, self.values)
+
+        self.wavelengths = new_wavelengths
+        self.values = new_values
 
     def convolve(self, srf):
         """Convolve the spectrum with a Spectral Response Function.
