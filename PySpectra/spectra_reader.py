@@ -58,6 +58,7 @@ class Spectra(object):
         self.intergration_time = None
         self.n_scans_average = 1
         self.additional_metadata = {}
+        self.skip_header = None
 
     def plot(self, label=None, **kwargs):
         """Produces a basic plot of the spectrum

@@ -51,10 +51,14 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
     """
 
     def read_metadata(self, filename):
-
+        
         spectra_file = open(filename, "r")
+        content = spectra_file.readlines()
+        spectra_file.close()
+        content = [x.strip() for x in content]
 
-        for line in spectra_file:
+        for i in range(len(content)):
+            line = content[i]
             line = line.strip()
             if line.startswith("Date"):
                 self.spectra.time = _parse_time_string(line)
@@ -71,8 +75,19 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
             elif line.count(":") == 1:
                 elements = line.split(":")
                 self.spectra.additional_metadata[elements[0]] = elements[1]
-
-        spectra_file.close()
+            elif "\t" in line:
+                line_split = line.split("\t")
+                if len(line_split) == 2 and line_split != "Wavelengths\tIntensities":
+                    try:
+                        wv_0 = float(line_split[0])
+                        dn_0 = float(line_split[1])
+                        if self.spectra.skip_header is None:
+                            self.spectra.skip_header = i
+                    except Exception:
+                        #most likely we have not reached the point and we have something like 'Wavelengths\tIntensities'
+                        pass
+                    
+        
 
 
     def get_spectra(self, filename, **kwargs):
@@ -102,7 +117,7 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
                                         datetime.timezone.utc)
 
         # Read in data
-        data = numpy.genfromtxt(filename, skip_header=6)
+        data = numpy.genfromtxt(filename, skip_header=self.spectra.skip_header)
         wavelengths = data[:, 0]
         dn = data[:, 1]
         # Set saturation values to NaN
@@ -125,12 +140,16 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
     """
     Class to read spectra from ASCII format data saved using OceanView software
     """
-
+    #TODO: repeat the code here
     def read_metadata(self, filename):
 
         spectra_file = open(filename, "r")
+        content = spectra_file.readlines()
+        spectra_file.close()
+        content = [x.strip() for x in content]
 
-        for line in spectra_file:
+        for i in range(len(content)):
+            line = content[i]
             line = line.strip()
             if line.startswith("Date"):
                 self.spectra.time = _parse_time_string(line)
@@ -149,6 +168,17 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
             elif line.count(":") == 1:
                 elements = line.split(":")
                 self.spectra.additional_metadata[elements[0]] = elements[1]
+            elif "\t" in line:
+                line_split = line.split("\t")
+                if len(line_split) == 2 and line_split != "Wavelengths\tIntensities":
+                    try:
+                        wv_0 = float(line_split[0])
+                        dn_0 = float(line_split[1])
+                        if self.spectra.skip_header is None:
+                            self.spectra.skip_header = i
+                    except Exception:
+                        #most likely we have not reached the point and we have something like 'Wavelengths\tIntensities'
+                        pass
 
         spectra_file.close()
 
@@ -180,7 +210,7 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
                                         datetime.timezone.utc)
 
         # Read in data
-        data = numpy.genfromtxt(filename, skip_header=15)
+        data = numpy.genfromtxt(filename, skip_header=self.spectra.skip_header)
         wavelengths = data[:, 0]
         dn = data[:, 1]
 
