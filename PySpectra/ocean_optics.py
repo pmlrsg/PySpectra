@@ -51,14 +51,10 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
     """
 
     def read_metadata(self, filename):
-        
-        spectra_file = open(filename, "r")
-        content = spectra_file.readlines()
-        spectra_file.close()
-        content = [x.strip() for x in content]
 
-        for i in range(len(content)):
-            line = content[i]
+        spectra_file = open(filename, "r")
+
+        for i, line in enumerate(spectra_file):
             line = line.strip()
             if line.startswith("Date"):
                 self.spectra.time = _parse_time_string(line)
@@ -79,16 +75,15 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
                 line_split = line.split("\t")
                 if len(line_split) == 2 and line_split != "Wavelengths\tIntensities":
                     try:
+                        # Try to convert values to floats, if this fails
+                        # assume haven't reached data yet
                         wv_0 = float(line_split[0])
                         dn_0 = float(line_split[1])
                         if self.spectra.skip_header is None:
                             self.spectra.skip_header = i
-                    except Exception:
+                    except ValueError:
                         #most likely we have not reached the point and we have something like 'Wavelengths\tIntensities'
                         pass
-                    
-        
-
 
     def get_spectra(self, filename, **kwargs):
         """
@@ -140,7 +135,6 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
     """
     Class to read spectra from ASCII format data saved using OceanView software
     """
-    #TODO: repeat the code here
     def read_metadata(self, filename):
 
         spectra_file = open(filename, "r")
@@ -172,11 +166,13 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
                 line_split = line.split("\t")
                 if len(line_split) == 2 and line_split != "Wavelengths\tIntensities":
                     try:
+                        # Try to convert values to floats, if this fails
+                        # assume haven't reached data yet
                         wv_0 = float(line_split[0])
                         dn_0 = float(line_split[1])
                         if self.spectra.skip_header is None:
                             self.spectra.skip_header = i
-                    except Exception:
+                    except ValueError:
                         #most likely we have not reached the point and we have something like 'Wavelengths\tIntensities'
                         pass
 
