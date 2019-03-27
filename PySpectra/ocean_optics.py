@@ -9,12 +9,41 @@
 # Created: 2019-02-11
 
 import os
-import time
+import datetime
 import numpy
 
 from . import spectra_reader
 
 OCEAN_OPTICS_SATURATION_VALUE = 16383
+
+def _parse_time_string(time_str):
+    """
+    Function to parse time string from ocean optics files
+
+    Returns datetime object.
+    """
+    time_str = time_str.replace("Date: ","")
+    try:
+        # Try to parse without time zone info
+        out_time = datetime.datetime.strptime(time_str,
+                                              "%a %b %d %H:%M:%S %Y")
+    except ValueError:
+        # If time zone info is a code (e.g., GMT, BST, IST)
+        # then covert to an offset so it can be parsed.
+        # This is the most robust way of dealing with the time zone
+        # code we have found.
+        for code, time_diff in spectra_reader.TIME_ZONE_DICT.items():
+            time_str = time_str.replace(code, time_diff)
+
+        try:
+            out_time = datetime.datetime.strptime(time_str,
+                                                  "%a %b %d %H:%M:%S %z %Y")
+        except ValueError as err:
+            raise ValueError("Failed to parse time string '{}', format wasn't as "
+                             "expected. If the timezone is a code (e.g., BST) "
+                             "try changing to an offset from UTC (e.g., +0100)."
+                             "\n{}".format(time_str, err))
+        return out_time
 
 class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
     """
@@ -25,10 +54,11 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
 
         spectra_file = open(filename, "r")
 
-        for line in spectra_file:
+        for i, line in enumerate(spectra_file):
             line = line.strip()
-
-            if line.startswith("Integration time: "):
+            if line.startswith("Date"):
+                self.spectra.time = _parse_time_string(line)
+            elif line.startswith("Integration time: "):
                 # Read in integration time. Stored in file as ms need to convert to
                 # seconds
                 self.spectra.integration_time = float(line.split(":")[1]) / 1E6
@@ -41,13 +71,23 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
             elif line.count(":") == 1:
                 elements = line.split(":")
                 self.spectra.additional_metadata[elements[0]] = elements[1]
-
-        spectra_file.close()
-
+            elif "\t" in line:
+                line_split = line.split("\t")
+                if len(line_split) == 2 and line_split != "Wavelengths\tIntensities":
+                    try:
+                        # Try to convert values to floats, if this fails
+                        # assume haven't reached data yet
+                        wv_0 = float(line_split[0])
+                        dn_0 = float(line_split[1])
+                        if self.spectra.skip_header is None:
+                            self.spectra.skip_header = i
+                    except ValueError:
+                        #most likely we have not reached the point and we have something like 'Wavelengths\tIntensities'
+                        pass
 
     def get_spectra(self, filename, **kwargs):
         """
-        Extract spectra from Ocean Optics STS 
+        Extract spectra from Ocean Optics STS
 
         Requires:
 
@@ -64,12 +104,15 @@ class OceanOpticsSTSFormatSDK(spectra_reader.SpectraReader):
         # Get creation time from file creation date. When using SDK this is the
         # only way to get this information.
         # Use whichever is first ctime or mtime.
+        # Assume timestamp is always UTC
         if self.spectra.time is None:
-            self.spectra.time = time.gmtime(int(numpy.min([os.stat(filename).st_ctime, 
-                                                      os.stat(filename).st_mtime])))
+            self.spectra.time = datetime.datetime.fromtimestamp(
+                                    int(numpy.min([os.stat(filename).st_ctime,
+                                        os.stat(filename).st_mtime])),
+                                        datetime.timezone.utc)
 
         # Read in data
-        data = numpy.genfromtxt(filename, skip_header=6)
+        data = numpy.genfromtxt(filename, skip_header=self.spectra.skip_header)
         wavelengths = data[:, 0]
         dn = data[:, 1]
         # Set saturation values to NaN
@@ -92,23 +135,18 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
     """
     Class to read spectra from ASCII format data saved using OceanView software
     """
-
     def read_metadata(self, filename):
 
         spectra_file = open(filename, "r")
+        content = spectra_file.readlines()
+        spectra_file.close()
+        content = [x.strip() for x in content]
 
-        for line in spectra_file:
+        for i in range(len(content)):
+            line = content[i]
             line = line.strip()
-
             if line.startswith("Date"):
-                # Some times has time zone but not always.
-                try:
-                    self.spectra.time = time.strptime(line.replace("Date: ",""),
-                                                      "%a %b %d %H:%M:%S %Z %Y")
-                except ValueError:
-                    self.spectra.time = time.strptime(line.replace("Date: ",""),
-                                                      "%a %b %d %H:%M:%S %Y")
-
+                self.spectra.time = _parse_time_string(line)
             elif line.startswith("Integration Time (sec): "):
                 # Read in integration time.
                 self.spectra.integration_time = float(line.split(":")[1])
@@ -124,13 +162,26 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
             elif line.count(":") == 1:
                 elements = line.split(":")
                 self.spectra.additional_metadata[elements[0]] = elements[1]
+            elif "\t" in line:
+                line_split = line.split("\t")
+                if len(line_split) == 2 and line_split != "Wavelengths\tIntensities":
+                    try:
+                        # Try to convert values to floats, if this fails
+                        # assume haven't reached data yet
+                        wv_0 = float(line_split[0])
+                        dn_0 = float(line_split[1])
+                        if self.spectra.skip_header is None:
+                            self.spectra.skip_header = i
+                    except ValueError:
+                        #most likely we have not reached the point and we have something like 'Wavelengths\tIntensities'
+                        pass
 
         spectra_file.close()
 
 
     def get_spectra(self, filename, **kwargs):
         """
-        Extract spectra from Ocean Optics STS 
+        Extract spectra from Ocean Optics STS
 
         Requires:
 
@@ -147,12 +198,15 @@ class OceanOpticsSTSFormatOceanView(spectra_reader.SpectraReader):
         # Get creation time from file creation date if can't get from
         # metadata
         # Use whichever is first ctime or mtime.
+        # Assume timestamp is always UTC
         if self.spectra.time is None:
-            self.spectra.time = time.gmtime(int(numpy.min([os.stat(filename).st_ctime, 
-                                                      os.stat(filename).st_mtime])))
+            self.spectra.time = datetime.datetime.fromtimestamp(
+                                    int(numpy.min([os.stat(filename).st_ctime,
+                                        os.stat(filename).st_mtime])),
+                                        datetime.timezone.utc)
 
         # Read in data
-        data = numpy.genfromtxt(filename, skip_header=15)
+        data = numpy.genfromtxt(filename, skip_header=self.spectra.skip_header)
         wavelengths = data[:, 0]
         dn = data[:, 1]
 

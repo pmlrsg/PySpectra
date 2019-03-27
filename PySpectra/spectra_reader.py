@@ -8,13 +8,19 @@
 # Author: Dan Clewley
 # Created: 27/08/2015
 
-import time
+import datetime
 
 import numpy
 
 from scipy.interpolate import interp1d
 from scipy.integrate import trapz
 
+# Set up a dictionary of time zone codes we use and offsets to UTC
+# Use this to replace time zone with an offset which can be parsed by datetime
+# using %z.
+TIME_ZONE_DICT = {"BST" : "+0100",
+                  "GMT" : "+0000",
+                  "IST" : "+0530"}
 
 class Spectra(object):
     """
@@ -52,6 +58,7 @@ class Spectra(object):
         self.intergration_time = None
         self.n_scans_average = 1
         self.additional_metadata = {}
+        self.skip_header = None
 
     def plot(self, label=None, **kwargs):
         """Produces a basic plot of the spectrum
@@ -72,16 +79,16 @@ class Spectra(object):
         """
         Get time difference between spectra and target spectra, returns
         results in seconds of base_spectra - target_spectra
-    
+
         Requires:
-        
+
         * target_spectra: a spectral object
 
         """
-        base_spectra_time_s = time.mktime(self.time)
-        target_spectra_time_s = time.mktime(target_spectra.time)
+        # Get timedelta object (as both are datetime objects)
+        time_diff = self.time - target_spectra.time
 
-        return base_spectra_time_s - target_spectra_time_s
+        return time_diff.total_seconds()
 
     def _convolve(self, srf):
         """Actually does the convolution as specified in the 'convolve' function."""
