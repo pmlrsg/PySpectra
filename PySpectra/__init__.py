@@ -50,22 +50,10 @@ def extract_spectra_from_file(inputfile, input_format='', **kwargs):
     elif input_format.lower() == 'dart':
         dart_obj = dart.DARTFormat()
         extracted_spectra = dart_obj.get_spectra(inputfile)
-    # There are different formats for ocean optics STS depending on
-    # if SDK is used (e.g., via Raspberry Pi) or OceanView software.
-    # If non are specified try both
+    # Ocean optics STS spectrometer format
     elif input_format.lower() == 'oceanoptics':
-        try:
-            ocean_optics_obj = ocean_optics.OceanOpticsSTSFormatSDK()
-            extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
-        except Exception:
-            ocean_optics_obj = ocean_optics.OceanOpticsSTSFormatOceanView()
-            extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
-    elif input_format.lower() == 'oceanoptics-sdk':
-        ocean_optics_obj = ocean_optics.OceanOpticsSTSFormatSDK()
-        extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
-    elif input_format.lower() == 'oceanoptics-oceanview':
-        ocean_optics_obj = ocean_optics.OceanOpticsSTSFormatOceanView()
-        extracted_spectra = ocean_optics_obj.get_spectra(inputfile)
+        ocean_optics_obj = ocean_optics.OceanOpticsSTSFormat()
+        extracted_spectra = ocean_optics_obj.get_spectra(inputfile, **kwargs)
     # Text format, need to specify delimiter and number of header lines manually.
     elif input_format.lower() == 'txt' or (os.path.splitext(inputfile)[-1].lower() == '.txt'):
         ascii_obj = ascii_format.ASCIIFormat()
