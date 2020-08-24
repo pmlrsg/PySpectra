@@ -154,9 +154,9 @@ class Spectra(object):
         s.convolve(LANDSAT_OLI)
 
         """
-        try:
+        if isinstance(srf, list):
             result = [self._convolve(s) for s in srf]
-        except:
+        else:
             result = self._convolve(srf)
 
         return result
