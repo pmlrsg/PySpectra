@@ -104,17 +104,25 @@ class SigFormat(spectra_reader.SpectraReader):
         # Get the ground truth data
         sig_dict = self.read_sig_to_dict(filename)
 
-        # remove overlap regions (remove VNIR for now)
+        point = 0
+
+        # Find overlap region
         for x in range(len(sig_dict["data"].T[0]) - 1):
             if sig_dict["data"].T[0][x + 1] < sig_dict["data"].T[0][x]:
                 point = x + 1
 
         points = numpy.asarray(numpy.where(sig_dict["data"].T[0] > sig_dict["data"].T[0][point]))
-        points = points[points < point]
 
-        wavelengths_reflectance = numpy.concatenate((sig_dict["data"].T[:, :points[0] - 1],
-                                                    sig_dict["data"].T[:, points[-1:] + 1:]),
-                                                    axis=1)
+        # If there is an overlap region then remove it
+        if point > 0:
+            points = points[points < point]
+
+            wavelengths_reflectance = numpy.concatenate((sig_dict["data"].T[:, :points[0] - 1],
+                                                        sig_dict["data"].T[:, points[-1:] + 1:]),
+                                                        axis=1)
+        # If not then load all data
+        else:
+            wavelengths_reflectance = sig_dict["data"].T
 
         wavelengths_reflectance = numpy.delete(wavelengths_reflectance, ([1, 2]), axis=0)
 
